@@ -190,8 +190,9 @@ park_curr park_trans(float v_alpha, float v_beta, float angle_el)
 {
     park_curr res;
     cordic_angle angle = cor(angle_el);
-    res.v_d = v_alpha * angle.cos_angle - v_beta * angle.sin_angle;
-    res.v_q = v_alpha * angle.sin_angle + v_beta * angle.cos_angle;
+    res.v_d = v_alpha * angle.cos_angle + v_beta * angle.sin_angle;
+    res.v_q = -v_alpha * angle.sin_angle + v_beta * angle.cos_angle;
+
     return res;
 }
 
@@ -370,36 +371,58 @@ void svpwm_modulation(float v_alpha, float v_beta)
     TIM1->CCR3 = foc.svpwm.change_tick.tcm3;
 }
 
-void foc_control(float target_d, float target_q)
-{
-    foc.real_clark = clark_trans(foc.adc.v_a, foc.adc.v_b, foc.adc.v_c);
-    double angle_el = get_angle_el();
-    foc.real_park = park_trans(foc.real_clark.v_alpha, foc.real_clark.v_beta, angle_el);
-    // pi_conrol
-    foc.target_park.v_d = PI_Calc(&foc.pid_d, target_d, foc.target_park.v_d);
-    foc.target_park.v_q = PI_Calc(&foc.pid_q, target_q, foc.target_park.v_q);
-    foc.target_clark = park_reverse(foc.target_park.v_q, foc.target_park.v_d, angle_el);
-    svpwm_modulation(foc.target_clark.v_alpha, foc.target_clark.v_beta);
-}
+// void foc_control(float target_d, float target_q)
+// {
+//     foc.real_clark = clark_trans(foc.adc.v_a, foc.adc.v_b, foc.adc.v_c);
+//     double angle_el = get_angle_el();
+//     foc.real_park = park_trans(foc.real_clark.v_alpha, foc.real_clark.v_beta, angle_el);
+//     // pi_conrol
+//     foc.target_park.v_d = PI_Calc(&foc.pid_d, target_d, foc.target_park.v_d);
+//     foc.target_park.v_q = PI_Calc(&foc.pid_q, target_q, foc.target_park.v_q);
+//     foc.target_clark = park_reverse(foc.target_park.v_q, foc.target_park.v_d, angle_el);
+//     svpwm_modulation(foc.target_clark.v_alpha, foc.target_clark.v_beta);
+// }
 
-void foc_open_loop_voltage_control(float target_v_d, float target_v_q)
+void foc_open_loop_voltage_control(void)
 {
+    foc.start_tick = DWT->CYCCNT;
+
     // 1. 获取真实电角度（保持磁场定向跟随转子位置）
     float angle_el = get_angle_el();
+
+    // foc.adc.v_a = LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_1);
+    // foc.adc.v_c = LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_2);
+    // foc.adc.v_b = LL_ADC_INJ_ReadConversionData12(ADC2, LL_ADC_INJ_RANK_2);
+
+    foc.adc.v_a = (1 - ADC_FILTER_ALPHA) * foc.adc.v_a + ADC_FILTER_ALPHA * ((float)LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_1) - foc.adc.v_a_offset) * ADC_Coefficient;
+    foc.adc.v_c = (1 - ADC_FILTER_ALPHA) * foc.adc.v_c + ADC_FILTER_ALPHA * ((float)LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_2) - foc.adc.v_c_offset) * ADC_Coefficient;
+    foc.adc.v_b = (1 - ADC_FILTER_ALPHA) * foc.adc.v_b + ADC_FILTER_ALPHA * ((float)LL_ADC_INJ_ReadConversionData12(ADC2, LL_ADC_INJ_RANK_2) - foc.adc.v_b_offset) * ADC_Coefficient;
+
+    foc.real_clark = clark_trans(-foc.adc.v_c, -foc.adc.v_b, -foc.adc.v_a);
+    foc.real_park = park_trans(foc.real_clark.v_alpha, foc.real_clark.v_beta, angle_el);
+
+    float target_v_d = PI_Calc(&foc.pid_d, 0.0f, foc.real_park.v_d);
+    float target_v_q = PI_Calc(&foc.pid_q, 0.07f, foc.real_park.v_q);
 
     // 2. 开环控制：跳过 ADC 采样、Clark 变换、正向 Park 变换和 PID 计算
     // 直接将目标电压赋给 d、q 轴
     // 通常 target_v_d 给 0，target_v_q 的大小代表你期望输出的“开环力矩”大小
-    foc.target_park.v_d = target_v_d;
-    foc.target_park.v_q = target_v_q;
+
+    // 0.3f
+    foc.target_park.v_d = 0.0f;
+    foc.target_park.v_q = 0.6f;
 
     // 3. 反 Park 变换：将 d、q 轴目标电压转换为 alpha、beta 轴电压
     // 注意检查你的 park_reverse 形参顺序，这里假设你的原形参是 (v_q, v_d, angle)
     foc.target_clark = park_reverse(foc.target_park.v_q, foc.target_park.v_d, angle_el);
-    foc.real_clark = clark_trans(foc.adc.v_a, foc.adc.v_b, foc.adc.v_c);
-    foc.real_park = park_trans(foc.real_clark.v_alpha, foc.real_clark.v_beta, angle_el);
+
+    // foc.target_clark.v_alpha = 0.3f;
+    // foc.target_clark.v_beta = 0.5196f;
+
     // 4. SVPWM 调制输出
     svpwm_modulation(foc.target_clark.v_alpha, foc.target_clark.v_beta);
+
+    foc.end_tick = DWT->CYCCNT;
 }
 
 OpenLoopPlanner planner = {0,        // 目标速度 (rad/s, 电角速度)
@@ -452,6 +475,13 @@ void foc_open_velocityloop_v2(float target_v_q)
 
 void motor_init(void)
 {
+    // 初始化电流 PID
+    // Kp Ki 需要根据电机电感电阻实际整定
+    // limit_out = 12.0f 假设母线电压12V，最大输出不能超过母线电压
+    // limit_int = 10.0f; 积分限幅稍微比输出限幅小一点或相等
+    PI_Init(&foc.pid_d, 0.2f, 1e-4f, 3.0f, 3.0f);
+    PI_Init(&foc.pid_q, 0.2f, 1e-4f, 3.0f, 3.0f);
+
     /* --- ADC 零点校准 --- */
     // 确保此时三相 PWM 还没输出，或者占空比为 0，保证电机没有电流
     uint32_t offset_sum_u = 0;

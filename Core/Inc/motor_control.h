@@ -95,7 +95,7 @@ void motor_step(uint8_t step);
 cordic_angle cor(float angle);
 float get_angle_el(void);
 T4T6_timeTypeDef T4T6_time(float v_alpha, float v_beta);
-void foc_open_loop_voltage_control(float target_v_d, float target_v_q);
+void foc_open_loop_voltage_control(void);
 void foc_open_velocityloop_v2(float target_v_q);
 void motor_init(void);
 void foc_velocityloop_init(void);

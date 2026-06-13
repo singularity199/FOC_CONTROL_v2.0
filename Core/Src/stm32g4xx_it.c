@@ -44,7 +44,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-extern usb_float_TypeDef usb_float_tail;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -210,18 +210,7 @@ void ADC1_2_IRQHandler(void)
     if (LL_ADC_IsActiveFlag_JEOS(ADC1) != 0)
     {
         LL_ADC_ClearFlag_JEOS(ADC1);
-        foc.start_tick = DWT->CYCCNT;
-        // foc.adc.v_a = LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_1);
-        // foc.adc.v_c = LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_2);
-        // foc.adc.v_b = LL_ADC_INJ_ReadConversionData12(ADC2, LL_ADC_INJ_RANK_2);
-
-        foc.adc.v_a = (1 - ADC_FILTER_ALPHA) * foc.adc.v_a + ADC_FILTER_ALPHA * ((float)LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_1) - foc.adc.v_a_offset) * ADC_Coefficient;
-        foc.adc.v_c = (1 - ADC_FILTER_ALPHA) * foc.adc.v_c + ADC_FILTER_ALPHA * ((float)LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_2) - foc.adc.v_c_offset) * ADC_Coefficient;
-        foc.adc.v_b = (1 - ADC_FILTER_ALPHA) * foc.adc.v_b + ADC_FILTER_ALPHA * ((float)LL_ADC_INJ_ReadConversionData12(ADC2, LL_ADC_INJ_RANK_2) - foc.adc.v_b_offset) * ADC_Coefficient;
-
-        // 0.3f
-        foc_open_loop_voltage_control(0.0f, 0.5f);
-        foc.end_tick = DWT->CYCCNT;
+        foc_open_loop_voltage_control();
     }
     /* USER CODE END ADC1_2_IRQn 0 */
     /* USER CODE BEGIN ADC1_2_IRQn 1 */
@@ -272,7 +261,7 @@ void TIM1_UP_TIM16_IRQHandler(void)
         LL_TIM_ClearFlag_UPDATE(TIM1);
         /* USER CODE BEGIN TIM1_UP_TIM16 */
 
-        foc_open_loop_voltage_control(0.0f, 0.5f);
+        // foc_open_loop_voltage_control();
         /* USER CODE END TIM1_UP_TIM16 */
     }
     /* USER CODE BEGIN TIM1_UP_TIM16_IRQn 1 */

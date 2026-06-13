@@ -56,7 +56,7 @@
 
 /* USER CODE BEGIN PV */
 uint32_t debug_it = 0;
-usb_float_TypeDef usb_float_tail;
+float usb_array[14];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -139,7 +139,7 @@ int main(void)
     OLED_Clear();
     OLED_Update();
 
-    usb_float_tail.tail = 0X7F800000;
+    ((uint32_t *)&(usb_array))[13] = 0X7F800000;
     /* USER CODE END 2 */
 
     /* Infinite loop */
@@ -165,15 +165,16 @@ int main(void)
         // uint16_t last_angle_machanine = SPI1_read(0xffff) & 0x3fff;
         /************************************************************************************** */
 
-        // uint16_t new_angle_machanine = foc.angle_machanine << 2;
-        // uint32_t new_tick = DWT->CYCCNT;
-        // float w = ((float)((int16_t)(new_angle_machanine - last_angle_machanine)) / 65535.0f) / ((float)(new_tick - last_tick) / 170000000.0f);
-        // usb_float_tail.w = w;
-        // last_angle_machanine = foc.angle_machanine << 2;
-        // last_tick = DWT->CYCCNT;
+        uint16_t new_angle_machanine = foc.angle_machanine << 2;
+        uint32_t new_tick = DWT->CYCCNT;
+        usb_array[0] = (1 - ADC_FILTER_ALPHA) * usb_array[0] + ADC_FILTER_ALPHA * ((float)((int16_t)(new_angle_machanine - last_angle_machanine)) / 65535.0f) / ((float)(new_tick - last_tick) / 170000000.0f);
+        last_angle_machanine = foc.angle_machanine << 2;
+        last_tick = DWT->CYCCNT;
+
+        /*************************************************************************************** */
+
         // OLED_Printf(0, 0, "%7.2f       ", w);
         // OLED_Update();
-        /*************************************************************************************** */
 
         // foc.start_tick = DWT->CYCCNT;
         // OLED_Printf(0, 2, "%8x", foc.adc.v_a);
@@ -184,18 +185,35 @@ int main(void)
         // OLED_Update();
         /*************************************************************************************** */
 
-        usb_float_tail.i_u = foc.adc.v_a;
-        usb_float_tail.i_v = foc.adc.v_b;
-        usb_float_tail.i_w = foc.adc.v_c;
-        usb_float_tail.iuvw = foc.adc.v_a + foc.adc.v_b + foc.adc.v_c;
-        usb_float_tail.angle_ma = ((float)((foc.angle_machanine + 0x3fff - foc.angle_error) & 0x3fff)) / 16383.0f;
-        usb_float_tail.d = foc.real_park.v_d;
-        usb_float_tail.q = foc.real_park.v_q;
-        usb_float_tail.qq_dd = foc.real_park.v_q * foc.real_park.v_q + foc.real_park.v_d * foc.real_park.v_d;
+        // usb_array[0] = ((float)((foc.angle_machanine + 0x3fff - foc.angle_error) & 0x3fff)) / 16383.0f;
 
-        while (CDC_Transmit_FS((uint8_t *)&usb_float_tail, sizeof(usb_float_tail)) != USBD_OK)
+        // usb_array[0].i_u = foc.adc.v_a;
+        // usb_array[1].i_v = foc.adc.v_b;
+        // usb_array[2].i_w = foc.adc.v_c;
+        // usb_array[3] = foc.adc.v_a + foc.adc.v_b + foc.adc.v_c;
+        usb_array[1] = foc.pid_d.error;
+        usb_array[2] = foc.pid_q.error;
+        usb_array[3] = foc.pid_d.error_sum;
+        usb_array[4] = foc.pid_q.error_sum;
+        usb_array[5] = foc.pid_d.output;
+        usb_array[6] = foc.pid_q.output;
+
+        usb_array[3] = foc.target_clark.v_alpha;
+        usb_array[4] = foc.target_clark.v_beta;
+
+        usb_array[5] = foc.real_clark.v_alpha;
+        usb_array[6] = foc.real_clark.v_beta;
+
+        usb_array[7] = foc.real_park.v_d;
+        usb_array[8] = foc.real_park.v_q;
+        usb_array[9] = foc.real_park.v_q * foc.real_park.v_q + foc.real_park.v_d * foc.real_park.v_d;
+        usb_array[10] = foc.adc.v_a;
+        usb_array[11] = foc.adc.v_b;
+        usb_array[12] = foc.adc.v_c;
+
+        while (CDC_Transmit_FS((uint8_t *)&usb_array, sizeof(usb_array)) != USBD_OK)
             ;
-        // CDC_Transmit_FS((uint8_t *)&usb_float_tail, sizeof(usb_float_tail));
+        // CDC_Transmit_FS((uint8_t *)&usb_array, sizeof(usb_array));
     }
     /* USER CODE END 3 */
 }

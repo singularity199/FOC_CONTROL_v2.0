@@ -58,20 +58,6 @@ extern "C"
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 extern uint32_t debug_it;
-typedef struct
-{
-    float i_u;
-    float i_v;
-    float i_w;
-    float iuvw;
-    float angle_ma;
-    float w;
-    float d;
-    float q;
-    float qq_dd;
-    uint32_t tail;
-} usb_float_TypeDef;
-extern usb_float_TypeDef usb_float_tail;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -137,7 +123,7 @@ void DWT_Init();
 #define PI 3.14159265358979323846f
 #define ADC_Coefficient 0.0537109375f
 #define ADC_Offset 1425
-#define ADC_FILTER_ALPHA 0.05f
+#define ADC_FILTER_ALPHA 0.005f
 #define USE_TIM_UPDATE_IT 0
 #define USE_ADC_INJECT_IT 1
 #define DETECT_RPM 0
