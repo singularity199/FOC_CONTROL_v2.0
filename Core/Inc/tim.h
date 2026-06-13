@@ -1,3 +1,4 @@
+// clang-format off
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -40,7 +41,7 @@ void MX_TIM1_Init(void);
 void MX_TIM4_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void SPEED_LOOP_TIM_Init(void);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

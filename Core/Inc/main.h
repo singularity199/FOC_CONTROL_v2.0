@@ -74,11 +74,11 @@ extern uint32_t debug_it;
 void Error_Handler(void);
 void DWT_Init();
 /* USER CODE BEGIN EFP */
-
+extern uint32_t it_count;
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define TIM_PWM_ARR 280
+#define TIM_PWM_ARR 220
 #define LED_PWM_ARR 102
 #define OLED_I2C_ADDR 0x78
 #define U_P_Pin                 LL_GPIO_PIN_1

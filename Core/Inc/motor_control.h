@@ -15,25 +15,27 @@ typedef struct
 
 typedef struct
 {
-    float v_alpha;
-    float v_beta;
-} clark_curr;
-
-typedef struct
-{
-    float v_a;
-    float v_b;
-    float v_c;
-    uint32_t v_a_offset;
-    uint32_t v_b_offset;
-    uint32_t v_c_offset;
+    float i_a;
+    float i_b;
+    float i_c;
+    uint32_t i_a_offset;
+    uint32_t i_b_offset;
+    uint32_t i_c_offset;
 } adc_curr;
 
+// alpha beta
 typedef struct
 {
-    float v_d;
-    float v_q;
-} park_curr;
+    float alpha;
+    float beta;
+} clark_frame;
+
+// d q
+typedef struct
+{
+    float d;
+    float q;
+} park_frame;
 
 typedef struct
 {
@@ -75,10 +77,11 @@ typedef struct
     uint32_t start_tick;
     uint32_t end_tick;
     adc_curr adc;
-    clark_curr real_clark;
-    clark_curr target_clark;
-    park_curr real_park;
-    park_curr target_park;
+    clark_frame real_clark_i;
+    park_frame real_park_i;
+    park_frame target_park_i;
+    clark_frame target_clark_v;
+    park_frame target_park_v;
     PI_Controller pid_d;
     PI_Controller pid_q;
     svpwm_status svpwm;
@@ -95,8 +98,7 @@ void motor_step(uint8_t step);
 cordic_angle cor(float angle);
 float get_angle_el(void);
 T4T6_timeTypeDef T4T6_time(float v_alpha, float v_beta);
-void foc_open_loop_voltage_control(void);
-void foc_open_velocityloop_v2(float target_v_q);
+void foc_current_loop_control(float i_d, float i_q);
 void motor_init(void);
 void foc_velocityloop_init(void);
 

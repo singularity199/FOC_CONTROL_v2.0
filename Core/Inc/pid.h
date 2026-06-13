@@ -12,6 +12,9 @@ typedef struct
     float limit_int; // 积分限幅（防止风速效应/爆冲）
 } PI_Controller;
 
+#define FILTER(alpha, input, output) \
+    (output = (1.0f - (alpha)) * (output) + (alpha) * (input))
+
 void PI_Init(PI_Controller *pi, float Kp, float Ki, float limit_out, float limit_int);
 float PI_Calc(PI_Controller *pi, float target, float measure);
 

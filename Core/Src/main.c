@@ -67,7 +67,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint32_t it_count = 0;
 /* USER CODE END 0 */
 
 /**
@@ -116,6 +116,7 @@ int main(void)
     MX_FMAC_Init();
     /* USER CODE BEGIN 2 */
     OLED_Init();
+    SPEED_LOOP_TIM_Init();
     LL_mDelay(100);
     OLED_Printf(0, 0, "SYSTEM:INIT!");
     LL_SPI_Enable(SPI1);
@@ -144,7 +145,7 @@ int main(void)
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
-    uint32_t it_count = 0;
+
     uint16_t last_angle_machanine = 0;
     uint32_t last_tick = 0;
     while (1)
@@ -173,8 +174,8 @@ int main(void)
 
         /*************************************************************************************** */
 
-        // OLED_Printf(0, 0, "%7.2f       ", w);
-        // OLED_Update();
+        OLED_Printf(0, 0, "%3d", it_count);
+        OLED_Update();
 
         // foc.start_tick = DWT->CYCCNT;
         // OLED_Printf(0, 2, "%8x", foc.adc.v_a);
@@ -197,22 +198,24 @@ int main(void)
         usb_array[4] = foc.pid_q.error_sum;
         usb_array[5] = foc.pid_d.output;
         usb_array[6] = foc.pid_q.output;
+        // usb_array[5] = foc.pid_d.output * foc.real_park.i_d;
+        // usb_array[6] = foc.pid_q.output * foc.real_park.i_q;
 
-        usb_array[3] = foc.target_clark.v_alpha;
-        usb_array[4] = foc.target_clark.v_beta;
+        // usb_array[3] = foc.target_clark.v_alpha;
+        // usb_array[4] = foc.target_clark.v_beta;
 
-        usb_array[5] = foc.real_clark.v_alpha;
-        usb_array[6] = foc.real_clark.v_beta;
+        // usb_array[5] = foc.real_clark.v_alpha;
+        // usb_array[6] = foc.real_clark.v_beta;
 
-        usb_array[7] = foc.real_park.v_d;
-        usb_array[8] = foc.real_park.v_q;
-        usb_array[9] = foc.real_park.v_q * foc.real_park.v_q + foc.real_park.v_d * foc.real_park.v_d;
-        usb_array[10] = foc.adc.v_a;
-        usb_array[11] = foc.adc.v_b;
-        usb_array[12] = foc.adc.v_c;
+        usb_array[7] = foc.real_park_i.d;
+        usb_array[8] = foc.real_park_i.q;
+        usb_array[9] = foc.real_park_i.q * foc.real_park_i.q + foc.real_park_i.d * foc.real_park_i.d;
+        usb_array[10] = foc.adc.i_a;
+        usb_array[11] = foc.adc.i_b;
+        usb_array[12] = foc.adc.i_c;
 
-        while (CDC_Transmit_FS((uint8_t *)&usb_array, sizeof(usb_array)) != USBD_OK)
-            ;
+        // while (CDC_Transmit_FS((uint8_t *)&usb_array, sizeof(usb_array)) != USBD_OK)
+        //     ;
         // CDC_Transmit_FS((uint8_t *)&usb_array, sizeof(usb_array));
     }
     /* USER CODE END 3 */

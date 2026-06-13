@@ -210,7 +210,7 @@ void ADC1_2_IRQHandler(void)
     if (LL_ADC_IsActiveFlag_JEOS(ADC1) != 0)
     {
         LL_ADC_ClearFlag_JEOS(ADC1);
-        foc_open_loop_voltage_control();
+        foc_current_loop_control(foc.target_park_i.d, foc.target_park_i.q);
     }
     /* USER CODE END ADC1_2_IRQn 0 */
     /* USER CODE BEGIN ADC1_2_IRQn 1 */
@@ -244,7 +244,9 @@ void EXTI15_10_IRQHandler(void)
     {
         LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_13);
         /* USER CODE BEGIN LL_EXTI_LINE_13 */
-        motor_init();
+        // motor_init();
+        LL_TIM_EnableIT_UPDATE(TIM2);
+        LL_TIM_EnableCounter(TIM2);
         /* USER CODE END LL_EXTI_LINE_13 */
 
         /* USER CODE BEGIN EXTI15_10_IRQn 1 */
@@ -268,5 +270,20 @@ void TIM1_UP_TIM16_IRQHandler(void)
 
     /* USER CODE END TIM1_UP_TIM16_IRQn 1 */
     /* USER CODE END TIM1_UP_TIM16_IRQn 0 */
+}
+void TIM2_IRQHandler(void)
+{
+    /* USER CODE BEGIN TIM2_IRQn 0 */
+    if (LL_TIM_IsActiveFlag_UPDATE(TIM2) != RESET)
+    {
+        LL_TIM_ClearFlag_UPDATE(TIM2);
+        /* USER CODE BEGIN TIM2 */
+        it_count++;
+        /* USER CODE END TIM2 */
+    }
+    /* USER CODE BEGIN TIM2_IRQn 1 */
+
+    /* USER CODE END TIM2_IRQn 1 */
+    /* USER CODE END TIM2_IRQn 0 */
 }
 /* USER CODE END 1 */

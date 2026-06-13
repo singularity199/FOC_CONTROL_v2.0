@@ -210,5 +210,28 @@ void MX_TIM4_Init(void)
 }
 
 /* USER CODE BEGIN 1 */
+void SPEED_LOOP_TIM_Init(void)
+{
+    /* USER CODE BEGIN SPEED_LOOP_TIM_Init 0 */
 
+    /* USER CODE END SPEED_LOOP_TIM_Init 0 */
+
+    LL_TIM_InitTypeDef TIM_InitStruct = {0};
+    /* Peripheral clock enable */
+    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
+
+    /* USER CODE BEGIN SPEED_LOOP_TIM_Init 1 */
+
+    /* USER CODE END SPEED_LOOP_TIM_Init 1 */
+    TIM_InitStruct.Prescaler = 16;
+    TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
+    TIM_InitStruct.Autoreload = 9999;
+    TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
+    LL_TIM_Init(TIM2, &TIM_InitStruct);
+    LL_TIM_DisableARRPreload(TIM2);
+
+    LL_TIM_DisableMasterSlaveMode(TIM2);
+    NVIC_SetPriority(TIM2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
+    NVIC_EnableIRQ(TIM2_IRQn);
+}
 /* USER CODE END 1 */
