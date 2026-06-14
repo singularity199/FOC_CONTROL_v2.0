@@ -74,8 +74,10 @@ typedef struct
 {
     uint16_t angle_machanine;
     uint32_t angle_error;
-    uint32_t start_tick;
-    uint32_t end_tick;
+    uint32_t new_tick;
+    uint32_t last_tick;
+    float target_speed;
+    float real_speed;
     adc_curr adc;
     clark_frame real_clark_i;
     park_frame real_park_i;
@@ -84,6 +86,7 @@ typedef struct
     park_frame target_park_v;
     PI_Controller pid_d;
     PI_Controller pid_q;
+    PI_Controller pid_speed;
     svpwm_status svpwm;
 } foc_state;
 

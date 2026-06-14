@@ -67,7 +67,7 @@ void MX_ADC1_Init(void)
     LL_GPIO_Init(W_OUT_GPIO_Port, &GPIO_InitStruct);
 
     /* ADC1 interrupt Init */
-    NVIC_SetPriority(ADC1_2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
+    NVIC_SetPriority(ADC1_2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 1, 0));
     NVIC_EnableIRQ(ADC1_2_IRQn);
 
     /* USER CODE BEGIN ADC1_Init 1 */

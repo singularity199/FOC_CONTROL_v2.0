@@ -231,7 +231,7 @@ void SPEED_LOOP_TIM_Init(void)
     LL_TIM_DisableARRPreload(TIM2);
 
     LL_TIM_DisableMasterSlaveMode(TIM2);
-    NVIC_SetPriority(TIM2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
+    NVIC_SetPriority(TIM2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 2, 0));
     NVIC_EnableIRQ(TIM2_IRQn);
 }
 /* USER CODE END 1 */

@@ -148,6 +148,8 @@ int main(void)
 
     uint16_t last_angle_machanine = 0;
     uint32_t last_tick = 0;
+
+    foc.last_tick = 0;
     while (1)
     {
         /* USER CODE END WHILE */
@@ -166,16 +168,16 @@ int main(void)
         // uint16_t last_angle_machanine = SPI1_read(0xffff) & 0x3fff;
         /************************************************************************************** */
 
-        uint16_t new_angle_machanine = foc.angle_machanine << 2;
-        uint32_t new_tick = DWT->CYCCNT;
-        usb_array[0] = (1 - ADC_FILTER_ALPHA) * usb_array[0] + ADC_FILTER_ALPHA * ((float)((int16_t)(new_angle_machanine - last_angle_machanine)) / 65535.0f) / ((float)(new_tick - last_tick) / 170000000.0f);
-        last_angle_machanine = foc.angle_machanine << 2;
-        last_tick = DWT->CYCCNT;
-
+        // uint16_t new_angle_machanine = foc.angle_machanine << 2;
+        // uint32_t new_tick = DWT->CYCCNT;
+        // usb_array[0] = (1 - ADC_FILTER_ALPHA) * usb_array[0] + ADC_FILTER_ALPHA * ((float)((int16_t)(new_angle_machanine - last_angle_machanine)) / 65535.0f) / ((float)(new_tick - last_tick) / 170000000.0f);
+        // last_angle_machanine = foc.angle_machanine << 2;
+        // last_tick = DWT->CYCCNT;
+        usb_array[0] = foc.real_speed;
         /*************************************************************************************** */
 
-        OLED_Printf(0, 0, "%3d", it_count);
-        OLED_Update();
+        // OLED_Printf(0, 0, "%3d", it_count);
+        // OLED_Update();
 
         // foc.start_tick = DWT->CYCCNT;
         // OLED_Printf(0, 2, "%8x", foc.adc.v_a);
@@ -210,12 +212,15 @@ int main(void)
         usb_array[7] = foc.real_park_i.d;
         usb_array[8] = foc.real_park_i.q;
         usb_array[9] = foc.real_park_i.q * foc.real_park_i.q + foc.real_park_i.d * foc.real_park_i.d;
-        usb_array[10] = foc.adc.i_a;
-        usb_array[11] = foc.adc.i_b;
-        usb_array[12] = foc.adc.i_c;
+        // usb_array[10] = foc.adc.i_a;
+        // usb_array[11] = foc.adc.i_b;
+        // usb_array[12] = foc.adc.i_c;
+        usb_array[10] = foc.pid_speed.error;
+        usb_array[11] = foc.pid_speed.error_sum;
+        usb_array[12] = foc.pid_speed.output;
 
-        // while (CDC_Transmit_FS((uint8_t *)&usb_array, sizeof(usb_array)) != USBD_OK)
-        //     ;
+        while (CDC_Transmit_FS((uint8_t *)&usb_array, sizeof(usb_array)) != USBD_OK)
+            ;
         // CDC_Transmit_FS((uint8_t *)&usb_array, sizeof(usb_array));
     }
     /* USER CODE END 3 */
@@ -293,7 +298,7 @@ void SystemClock_Config(void)
     {
     }
 
-    LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_2, 85, LL_RCC_PLLR_DIV_2);
+    LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_3, 85, LL_RCC_PLLR_DIV_2);
     LL_RCC_PLL_EnableDomain_SYS();
     LL_RCC_PLL_Enable();
     /* Wait till PLL is ready */
@@ -302,7 +307,7 @@ void SystemClock_Config(void)
     }
 
     LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL);
-    LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_2);
+    LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
     /* Wait till System clock is ready */
     while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL)
     {

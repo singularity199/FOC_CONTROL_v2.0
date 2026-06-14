@@ -374,7 +374,6 @@ void svpwm_modulation(float v_alpha, float v_beta)
 
 void foc_current_loop_control(float i_d, float i_q)
 {
-    foc.start_tick = DWT->CYCCNT;
 
     // 1. 获取真实电角度（保持磁场定向跟随转子位置）
     float angle_el = get_angle_el();
@@ -400,8 +399,6 @@ void foc_current_loop_control(float i_d, float i_q)
 
     foc.target_clark_v = park_reverse(target_v_q, target_v_d, angle_el);
     svpwm_modulation(foc.target_clark_v.alpha, foc.target_clark_v.beta);
-
-    foc.end_tick = DWT->CYCCNT;
 }
 
 void motor_init(void)
@@ -410,8 +407,9 @@ void motor_init(void)
     // Kp Ki 需要根据电机电感电阻实际整定
     // limit_out = 12.0f 假设母线电压12V，最大输出不能超过母线电压
     // limit_int = 10.0f; 积分限幅稍微比输出限幅小一点或相等
-    PI_Init(&foc.pid_d, 10.0f, 1e-3f, 6.0f, 6.0f);
-    PI_Init(&foc.pid_q, 10.0f, 1e-3f, 6.0f, 6.0f);
+    PI_Init(&foc.pid_d, 10.0f, 1e-2f, 6.0f, 6.0f);
+    PI_Init(&foc.pid_q, 10.0f, 1e-2f, 6.0f, 6.0f);
+    PI_Init(&foc.pid_speed, 1e-3f, 1e-2f, 0.5f, 0.5f);
 
     /* --- ADC 零点校准 --- */
     // 确保此时三相 PWM 还没输出，或者占空比为 0，保证电机没有电流

@@ -44,7 +44,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+uint16_t last_angle_machanine = 0;
+uint32_t last_tick = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -210,7 +211,8 @@ void ADC1_2_IRQHandler(void)
     if (LL_ADC_IsActiveFlag_JEOS(ADC1) != 0)
     {
         LL_ADC_ClearFlag_JEOS(ADC1);
-        foc_current_loop_control(foc.target_park_i.d, foc.target_park_i.q);
+        // foc_current_loop_control(foc.target_park_i.d, foc.target_park_i.q);
+        foc_current_loop_control(0.0f, foc.target_park_i.q);
     }
     /* USER CODE END ADC1_2_IRQn 0 */
     /* USER CODE BEGIN ADC1_2_IRQn 1 */
@@ -244,7 +246,7 @@ void EXTI15_10_IRQHandler(void)
     {
         LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_13);
         /* USER CODE BEGIN LL_EXTI_LINE_13 */
-        // motor_init();
+        motor_init();
         LL_TIM_EnableIT_UPDATE(TIM2);
         LL_TIM_EnableCounter(TIM2);
         /* USER CODE END LL_EXTI_LINE_13 */
@@ -279,6 +281,13 @@ void TIM2_IRQHandler(void)
         LL_TIM_ClearFlag_UPDATE(TIM2);
         /* USER CODE BEGIN TIM2 */
         it_count++;
+        uint16_t new_angle_machanine = foc.angle_machanine << 2;
+        foc.new_tick = DWT->CYCCNT;
+        // foc.real_speed = (1 - ADC_FILTER_ALPHA) * foc.real_speed + ADC_FILTER_ALPHA * ((float)((int16_t)(new_angle_machanine - last_angle_machanine)) / 65535.0f) / ((float)(foc.new_tick - last_tick) / 170000000.0f);
+        FILTER(0.1f, ((float)((int16_t)(new_angle_machanine - last_angle_machanine)) / 65535.0f) / ((float)(foc.new_tick - last_tick) / 170000000.0f), foc.real_speed);
+        last_angle_machanine = foc.angle_machanine << 2;
+        last_tick = foc.new_tick;
+        foc.target_park_i.q = PI_Calc(&foc.pid_speed, 45.0f, foc.real_speed);
         /* USER CODE END TIM2 */
     }
     /* USER CODE BEGIN TIM2_IRQn 1 */
