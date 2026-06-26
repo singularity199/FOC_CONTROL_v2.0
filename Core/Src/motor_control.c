@@ -378,20 +378,20 @@ void foc_current_loop_control(float i_d, float i_q)
     // 1. 获取真实电角度（保持磁场定向跟随转子位置）
     float angle_el = get_angle_el();
 
-    // foc.adc.i_a = (1 - ADC_FILTER_ALPHA) * foc.adc.i_a + ADC_FILTER_ALPHA * ((float)LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_1) - foc.adc.i_a_offset) * ADC_Coefficient;
-    // foc.adc.i_c = (1 - ADC_FILTER_ALPHA) * foc.adc.i_c + ADC_FILTER_ALPHA * ((float)LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_2) - foc.adc.i_c_offset) * ADC_Coefficient;
-    // foc.adc.i_b = (1 - ADC_FILTER_ALPHA) * foc.adc.i_b + ADC_FILTER_ALPHA * ((float)LL_ADC_INJ_ReadConversionData12(ADC2, LL_ADC_INJ_RANK_2) - foc.adc.i_b_offset) * ADC_Coefficient;
+    foc.adc.i_a = ((float)LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_1) - foc.adc.i_a_offset) * ADC_Coefficient;
+    foc.adc.i_c = ((float)LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_2) - foc.adc.i_c_offset) * ADC_Coefficient;
+    foc.adc.i_b = ((float)LL_ADC_INJ_ReadConversionData12(ADC2, LL_ADC_INJ_RANK_2) - foc.adc.i_b_offset) * ADC_Coefficient;
 
-    FILTER(ADC_FILTER_ALPHA, ((float)LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_1) - foc.adc.i_a_offset) * ADC_Coefficient, foc.adc.i_a);
-    FILTER(ADC_FILTER_ALPHA, ((float)LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_2) - foc.adc.i_c_offset) * ADC_Coefficient, foc.adc.i_c);
-    FILTER(ADC_FILTER_ALPHA, ((float)LL_ADC_INJ_ReadConversionData12(ADC2, LL_ADC_INJ_RANK_2) - foc.adc.i_b_offset) * ADC_Coefficient, foc.adc.i_b);
+    // FILTER(ADC_FILTER_ALPHA, ((float)LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_1) - foc.adc.i_a_offset) * ADC_Coefficient, foc.adc.i_a);
+    // FILTER(ADC_FILTER_ALPHA, ((float)LL_ADC_INJ_ReadConversionData12(ADC1, LL_ADC_INJ_RANK_2) - foc.adc.i_c_offset) * ADC_Coefficient, foc.adc.i_c);
+    // FILTER(ADC_FILTER_ALPHA, ((float)LL_ADC_INJ_ReadConversionData12(ADC2, LL_ADC_INJ_RANK_2) - foc.adc.i_b_offset) * ADC_Coefficient, foc.adc.i_b);
 
     foc.real_clark_i = clark_trans(-foc.adc.i_c, -foc.adc.i_b, -foc.adc.i_a);
-    foc.real_park_i = park_trans(foc.real_clark_i.alpha, foc.real_clark_i.beta, angle_el);
+    park_frame curr_park_i = park_trans(foc.real_clark_i.alpha, foc.real_clark_i.beta, angle_el);
 
     // park_frame curr_park_i = park_trans(foc.real_clark_i.alpha, foc.real_clark_i.beta, angle_el);
-    // FILTER(0.9f, curr_park_i.d, foc.real_park_i.d);
-    // FILTER(0.9f, curr_park_i.q, foc.real_park_i.q);
+    FILTER(0.9f, curr_park_i.d, foc.real_park_i.d);
+    FILTER(0.9f, curr_park_i.q, foc.real_park_i.q);
 
     // PI 控制器计算目标电压
     float target_v_d = PI_Calc(&foc.pid_d, i_d, foc.real_park_i.d);
@@ -407,9 +407,9 @@ void motor_init(void)
     // Kp Ki 需要根据电机电感电阻实际整定
     // limit_out = 12.0f 假设母线电压12V，最大输出不能超过母线电压
     // limit_int = 10.0f; 积分限幅稍微比输出限幅小一点或相等
-    PI_Init(&foc.pid_d, 10.0f, 1e-2f, 6.0f, 6.0f);
-    PI_Init(&foc.pid_q, 10.0f, 1e-2f, 6.0f, 6.0f);
-    PI_Init(&foc.pid_speed, 1e-3f, 1e-2f, 0.5f, 0.5f);
+    PI_Init(&foc.pid_d, 0.3927f, 0.03608f, 6.0f, 6.0f);
+    PI_Init(&foc.pid_q, 0.3927f, 0.03608f, 6.0f, 6.0f);
+    PI_Init(&foc.pid_speed, 2.321f, 0.062f, 0.5f, 0.5f);
 
     /* --- ADC 零点校准 --- */
     // 确保此时三相 PWM 还没输出，或者占空比为 0，保证电机没有电流

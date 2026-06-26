@@ -123,7 +123,7 @@ extern uint32_t it_count;
 #define PI 3.14159265358979323846f
 #define ADC_Coefficient 0.0537109375f
 #define ADC_Offset 1425
-#define ADC_FILTER_ALPHA 0.005f
+#define ADC_FILTER_ALPHA 1.0f
 #define USE_TIM_UPDATE_IT 0
 #define USE_ADC_INJECT_IT 1
 #define DETECT_RPM 0

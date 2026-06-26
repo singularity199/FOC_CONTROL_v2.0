@@ -287,7 +287,7 @@ void TIM2_IRQHandler(void)
         FILTER(0.1f, ((float)((int16_t)(new_angle_machanine - last_angle_machanine)) / 65535.0f) / ((float)(foc.new_tick - last_tick) / 170000000.0f), foc.real_speed);
         last_angle_machanine = foc.angle_machanine << 2;
         last_tick = foc.new_tick;
-        foc.target_park_i.q = PI_Calc(&foc.pid_speed, 45.0f, foc.real_speed);
+        foc.target_park_i.q = PI_Calc(&foc.pid_speed, foc.target_speed, foc.real_speed);
         /* USER CODE END TIM2 */
     }
     /* USER CODE BEGIN TIM2_IRQn 1 */

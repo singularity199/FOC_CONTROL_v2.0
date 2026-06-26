@@ -35,6 +35,7 @@
 #include "oled.h"
 #include "motor_control.h"
 #include "usbd_cdc_if.h"
+#include "remote_control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -155,6 +156,7 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
+        remote_control_task();
         // foc.start_tick = DWT->CYCCNT;
         // LL_mDelay(100);
         // foc.end_tick = DWT->CYCCNT;
