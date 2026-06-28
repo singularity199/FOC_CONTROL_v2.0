@@ -19,6 +19,7 @@ static uint16_t line_index;
 static uint8_t line_overflow;
 
 static RemoteKnobBind knob_bind;
+uint8_t usb_speed_command_flag = 0;
 
 /**
  * @brief 将命令中的数字字符串转换为浮点数。
@@ -87,6 +88,7 @@ static float remote_parse_float(const char *text)
 static void remote_set_speed_rps(float rps)
 {
     foc.target_speed = rps;
+    usb_speed_command_flag = 1;
 }
 
 /**

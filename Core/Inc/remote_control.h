@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+extern uint8_t usb_speed_command_flag;
+
 void remote_control_init(void);
 void remote_control_rx_feed(uint8_t *data, uint32_t len);
 void remote_control_task(void);

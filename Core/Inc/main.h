@@ -117,16 +117,19 @@ extern uint32_t it_count;
 #define LED_STATUS_GPIO_Port    GPIOB
 
 /* USER CODE BEGIN Private defines */
-#define SQRT3 1.73205081f
-#define POLE_PAIRS 7
-#define V_BUS 25.0f
-#define PI 3.14159265358979323846f
-#define ADC_Coefficient 0.0537109375f
-#define ADC_Offset 1425
-#define ADC_FILTER_ALPHA 1.0f
-#define USE_TIM_UPDATE_IT 0
-#define USE_ADC_INJECT_IT 1
-#define DETECT_RPM 0
+#define SQRT3                   1.73205081f
+#define POLE_PAIRS              7
+#define V_BUS                   25.0f
+#define PI                      3.14159265358979323846f
+#define ADC_Coefficient         0.0537109375f
+#define ADC_Offset              1425
+#define ADC_FILTER_ALPHA        1.0f
+#define SPEED_LOOP_TS           0.001f
+#define SPEED_ACCEL_MAX         300.0f
+#define SPEED_SHAPE_K           4
+#define USE_TIM_UPDATE_IT       0
+#define USE_ADC_INJECT_IT       1
+#define DETECT_RPM              0
 
 
 #define DEBUG 0

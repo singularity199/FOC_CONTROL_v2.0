@@ -37,6 +37,7 @@ virtualFolder:
                 - path: ../Core/Src/motor_control.c
                 - path: ../Core/Src/pid.c
                 - path: ../Core/Src/remote_control.c
+                - path: ../Core/Src/s_curve.c
               folders: []
             - name: USB_Device
               files: []

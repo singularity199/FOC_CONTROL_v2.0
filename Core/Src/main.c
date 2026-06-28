@@ -36,6 +36,7 @@
 #include "motor_control.h"
 #include "usbd_cdc_if.h"
 #include "remote_control.h"
+#include "s_curve.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -135,6 +136,12 @@ int main(void)
     OLED_Update();
 
     OLED_Printf(0, 4, "ADC:START!");
+    SCurve_Init(&speed_curve,
+                0.0f,
+                SPEED_LOOP_TS,
+                SPEED_ACCEL_MAX,
+                SPEED_SHAPE_K);
+    speed_curve.command_deadband = 5.0f;
     OLED_Printf(0, 6, "READY!");
     OLED_Update();
     LL_mDelay(2000);

@@ -25,6 +25,9 @@
 #include "spi.h"
 #include "oled.h"
 #include "motor_control.h"
+#include "s_curve.h"
+#include "remote_control.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,6 +47,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+
 uint16_t last_angle_machanine = 0;
 uint32_t last_tick = 0;
 /* USER CODE END PV */
@@ -246,6 +250,7 @@ void EXTI15_10_IRQHandler(void)
     {
         LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_13);
         /* USER CODE BEGIN LL_EXTI_LINE_13 */
+
         motor_init();
         LL_TIM_EnableIT_UPDATE(TIM2);
         LL_TIM_EnableCounter(TIM2);
@@ -287,7 +292,13 @@ void TIM2_IRQHandler(void)
         FILTER(0.1f, ((float)((int16_t)(new_angle_machanine - last_angle_machanine)) / 65535.0f) / ((float)(foc.new_tick - last_tick) / 170000000.0f), foc.real_speed);
         last_angle_machanine = foc.angle_machanine << 2;
         last_tick = foc.new_tick;
-        foc.target_park_i.q = PI_Calc(&foc.pid_speed, foc.target_speed, foc.real_speed);
+        if (usb_speed_command_flag == 1)
+        {
+            SCurve_SetTarget(&speed_curve, foc.target_speed);
+            usb_speed_command_flag = 0;
+        }
+        float scurve_speed = SCurve_Update(&speed_curve);
+        foc.target_park_i.q = PI_Calc(&foc.pid_speed, scurve_speed, foc.real_speed);
         /* USER CODE END TIM2 */
     }
     /* USER CODE BEGIN TIM2_IRQn 1 */

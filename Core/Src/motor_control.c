@@ -407,9 +407,9 @@ void motor_init(void)
     // Kp Ki 需要根据电机电感电阻实际整定
     // limit_out = 12.0f 假设母线电压12V，最大输出不能超过母线电压
     // limit_int = 10.0f; 积分限幅稍微比输出限幅小一点或相等
-    PI_Init(&foc.pid_d, 0.3927f, 0.03608f, 6.0f, 6.0f);
-    PI_Init(&foc.pid_q, 0.3927f, 0.03608f, 6.0f, 6.0f);
-    PI_Init(&foc.pid_speed, 2.321f, 0.062f, 0.5f, 0.5f);
+    PI_Init(&foc.pid_d, 0.3927f, 0.03608f, 18.0f, 18.0f);
+    PI_Init(&foc.pid_q, 0.3927f, 0.03608f, 18.0f, 18.0f);
+    PI_Init(&foc.pid_speed, 2.0f, 0.062f, 3.0f, 3.0f);
 
     /* --- ADC 零点校准 --- */
     // 确保此时三相 PWM 还没输出，或者占空比为 0，保证电机没有电流
