@@ -37,6 +37,9 @@
 #include "usbd_cdc_if.h"
 #include "remote_control.h"
 #include "s_curve.h"
+#include "can.h"
+#include "nonlinear_flux_observer.h"
+#include "Sguan_NLFO.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,7 +61,7 @@
 
 /* USER CODE BEGIN PV */
 uint32_t debug_it = 0;
-float usb_array[14];
+float usb_array[23];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -70,6 +73,7 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint32_t it_count = 0;
+extern NLFO_STRUCT nlfo;
 /* USER CODE END 0 */
 
 /**
@@ -142,13 +146,38 @@ int main(void)
                 SPEED_ACCEL_MAX,
                 SPEED_SHAPE_K);
     speed_curve.command_deadband = 5.0f;
-    OLED_Printf(0, 6, "READY!");
+// CAN_UserInit();
+// OLED_Printf(0, 6, "CAN:READY!");
+#if USE_Sguan_NLFO
+    NLFO_Init(&nlfo,
+              FOC_CONTROL_Ts,
+              BLDC_MAG_FLUX_LINK,
+              BLDC_PHASE_Rs,
+              BLDC_PHASE_L,
+              BLDC_PHASE_L,
+              NFO_GAIN);
+#endif
+#if USE_NLFO
+    NFO_Init(&nfo, BLDC_PHASE_Rs, BLDC_PHASE_L, BLDC_MAG_FLUX_LINK, FOC_CONTROL_Ts, NFO_K_NL);
+    NFO_SetPLL(&nfo, NFO_PLL_KP, NFO_PLL_KI);
+    NFO_SetSpeedFilter(&nfo, NFO_SPEED_FILTER_ALPHA);
+    NFO_SetPLLOmegaLimit(&nfo, NFO_PLL_OMEGA_LIMIT);
+    OLED_Printf(0, 6, "NFO:INIT!");
+    OLED_Update();
+#endif
+    LL_mDelay(1000);
+    OLED_Clear();
+    OLED_Update();
+    motor_smo_init();
+    OLED_Printf(0, 0, "SMO:INIT!");
+    OLED_Update();
+    OLED_Printf(0, 2, "READY!");
     OLED_Update();
     LL_mDelay(2000);
     OLED_Clear();
     OLED_Update();
 
-    ((uint32_t *)&(usb_array))[13] = 0X7F800000;
+    ((uint32_t *)&(usb_array))[22] = 0X7F800000;
     /* USER CODE END 2 */
 
     /* Infinite loop */
@@ -163,7 +192,28 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
+        /*********************************************************************************************************************************************** */
         remote_control_task();
+        // if (can_rx_dbg.new_flag)
+        // {
+        //     can_rx_dbg.new_flag = 0;
+
+        //     OLED_Clear();
+        //     OLED_Printf(0, 0, "ID:%03X", can_rx_dbg.last_id);
+        //     OLED_Printf(0, 2, "DLC:%lu", can_rx_dbg.last_dlc);
+
+        //     OLED_Printf(0, 4, "%02X %02X %02X %02X",
+        //                 can_rx_dbg.last_data[0],
+        //                 can_rx_dbg.last_data[1],
+        //                 can_rx_dbg.last_data[2],
+        //                 can_rx_dbg.last_data[3]);
+
+        //     OLED_Printf(0, 6, "%02X %02X %02X %02X",
+        //                 can_rx_dbg.last_data[4],
+        //                 can_rx_dbg.last_data[5],
+        //                 can_rx_dbg.last_data[6],
+        //                 can_rx_dbg.last_data[7]);
+        // }
         // foc.start_tick = DWT->CYCCNT;
         // LL_mDelay(100);
         // foc.end_tick = DWT->CYCCNT;
@@ -182,7 +232,8 @@ int main(void)
         // usb_array[0] = (1 - ADC_FILTER_ALPHA) * usb_array[0] + ADC_FILTER_ALPHA * ((float)((int16_t)(new_angle_machanine - last_angle_machanine)) / 65535.0f) / ((float)(new_tick - last_tick) / 170000000.0f);
         // last_angle_machanine = foc.angle_machanine << 2;
         // last_tick = DWT->CYCCNT;
-        usb_array[0] = foc.real_speed;
+        usb_array[0] = foc.angle_machanine;
+        usb_array[1] = foc.angle_el;
         /*************************************************************************************** */
 
         // OLED_Printf(0, 0, "%3d", it_count);
@@ -196,41 +247,23 @@ int main(void)
         // // OLED_Printf(0, 0, "tick:%x", foc.end_tick - foc.start_tick);
         // OLED_Update();
         /*************************************************************************************** */
-
-        // usb_array[0] = ((float)((foc.angle_machanine + 0x3fff - foc.angle_error) & 0x3fff)) / 16383.0f;
-
-        // usb_array[0].i_u = foc.adc.v_a;
-        // usb_array[1].i_v = foc.adc.v_b;
-        // usb_array[2].i_w = foc.adc.v_c;
-        // usb_array[3] = foc.adc.v_a + foc.adc.v_b + foc.adc.v_c;
-        usb_array[1] = foc.pid_d.error;
-        usb_array[2] = foc.pid_q.error;
-        usb_array[3] = foc.pid_d.error_sum;
-        usb_array[4] = foc.pid_q.error_sum;
-        usb_array[5] = foc.pid_d.output;
-        usb_array[6] = foc.pid_q.output;
-        // usb_array[5] = foc.pid_d.output * foc.real_park.i_d;
-        // usb_array[6] = foc.pid_q.output * foc.real_park.i_q;
-
-        // usb_array[3] = foc.target_clark.v_alpha;
-        // usb_array[4] = foc.target_clark.v_beta;
-
-        // usb_array[5] = foc.real_clark.v_alpha;
-        // usb_array[6] = foc.real_clark.v_beta;
-
-        usb_array[7] = foc.real_park_i.d;
-        usb_array[8] = foc.real_park_i.q;
-        usb_array[9] = foc.real_park_i.q * foc.real_park_i.q + foc.real_park_i.d * foc.real_park_i.d;
-        // usb_array[10] = foc.adc.i_a;
-        // usb_array[11] = foc.adc.i_b;
-        // usb_array[12] = foc.adc.i_c;
-        usb_array[10] = foc.pid_speed.error;
-        usb_array[11] = foc.pid_speed.error_sum;
-        usb_array[12] = foc.pid_speed.output;
+        usb_array[2] = foc.real_speed;
+        usb_array[3] = foc.pid_d.error;
+        usb_array[4] = foc.pid_q.error;
+        usb_array[5] = foc.pid_d.error_sum;
+        usb_array[6] = foc.pid_q.error_sum;
+        usb_array[7] = foc.pid_d.output;
+        usb_array[8] = foc.pid_q.output;
+        usb_array[9] = foc.real_park_i.d;
+        usb_array[10] = foc.real_park_i.q;
+        usb_array[11] = foc.real_park_i.q * foc.real_park_i.q + foc.real_park_i.d * foc.real_park_i.d;
+        usb_array[12] = foc.pid_speed.error;
+        usb_array[13] = foc.pid_speed.error_sum;
 
         while (CDC_Transmit_FS((uint8_t *)&usb_array, sizeof(usb_array)) != USBD_OK)
             ;
-        // CDC_Transmit_FS((uint8_t *)&usb_array, sizeof(usb_array));
+        // OLED_Update();
+        /******************************************************************************************************************************************************* */
     }
     /* USER CODE END 3 */
 }
