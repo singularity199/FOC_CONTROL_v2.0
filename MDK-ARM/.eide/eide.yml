@@ -38,6 +38,11 @@ virtualFolder:
                 - path: ../Core/Src/pid.c
                 - path: ../Core/Src/remote_control.c
                 - path: ../Core/Src/s_curve.c
+                - path: ../Core/Src/motor_identify.c
+                - path: ../Core/Src/nonlinear_flux_observer.c
+                - path: ../Core/Src/nlfo.c
+                - path: ../Core/Src/foc.c
+                - path: ../Core/Src/smo.c
               folders: []
             - name: USB_Device
               files: []

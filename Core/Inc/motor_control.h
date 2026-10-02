@@ -8,7 +8,7 @@
 #include "oled.h"
 #include "nonlinear_flux_observer.h"
 #include "foc.h"
-#include "Sguan_NLFO.h"
+
 #include "smo.h"
 typedef struct
 {
@@ -22,7 +22,7 @@ typedef struct
 extern foc_state foc;
 extern SMO_t smo;
 extern NFO_Handle_t nfo;
-extern NLFO_STRUCT nlfo;
+
 extern OpenLoopPlanner planner;
 void set_high_phase(uint8_t phase);
 void set_pwm_phase(uint8_t phase, uint16_t throttle);

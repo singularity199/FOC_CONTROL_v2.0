@@ -1,7 +1,6 @@
 #include "motor_control.h"
 
 foc_state foc;
-NLFO_STRUCT nlfo;
 NFO_Handle_t nfo;
 SMO_t smo;
 uint8_t throttle;

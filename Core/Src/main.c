@@ -39,7 +39,6 @@
 #include "s_curve.h"
 #include "can.h"
 #include "nonlinear_flux_observer.h"
-#include "Sguan_NLFO.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -73,7 +72,6 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint32_t it_count = 0;
-extern NLFO_STRUCT nlfo;
 /* USER CODE END 0 */
 
 /**
@@ -149,13 +147,6 @@ int main(void)
 // CAN_UserInit();
 // OLED_Printf(0, 6, "CAN:READY!");
 #if USE_Sguan_NLFO
-    NLFO_Init(&nlfo,
-              FOC_CONTROL_Ts,
-              BLDC_MAG_FLUX_LINK,
-              BLDC_PHASE_Rs,
-              BLDC_PHASE_L,
-              BLDC_PHASE_L,
-              NFO_GAIN);
 #endif
 #if USE_NLFO
     NFO_Init(&nfo, BLDC_PHASE_Rs, BLDC_PHASE_L, BLDC_MAG_FLUX_LINK, FOC_CONTROL_Ts, NFO_K_NL);

@@ -29,7 +29,6 @@
 #include "remote_control.h"
 #include "nonlinear_flux_observer.h"
 #include "math.h"
-#include "Sguan_NLFO.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,7 +53,6 @@ uint16_t last_angle_machanine = 0;
 uint32_t last_tick = 0;
 extern FDCAN_HandleTypeDef hfdcan1;
 extern float usb_array[23];
-extern NLFO_STRUCT nlfo;
 
 typedef struct
 {
@@ -430,17 +428,6 @@ void ADC1_2_IRQHandler(void)
 
         foc_current_loop_control(0.0f, foc.target_park_i.q);
 
-        NFO_Update(
-            &nfo,
-            v_alpha_obs,
-            v_beta_obs,
-            foc.real_clark_i.alpha,
-            foc.real_clark_i.beta);
-        nlfo.go.Input_Ualpha = v_alpha_obs;
-        nlfo.go.Input_Ubeta = v_beta_obs;
-        nlfo.go.Input_Ialpha = foc.real_clark_i.alpha;
-        nlfo.go.Input_Ibeta = foc.real_clark_i.beta;
-        NLFO_Loop(&nlfo);
 
         SMO_Update(
             &smo,
@@ -448,10 +435,7 @@ void ADC1_2_IRQHandler(void)
             v_beta_obs,
             foc.real_clark_i.alpha,
             foc.real_clark_i.beta);
-        usb_array[14] = nfo.theta_e;
-        usb_array[15] = atan2f(nlfo.go.Output_Sine, nlfo.go.Output_Cosine);
-        usb_array[16] = smo.theta_compensated;
-    }
+        }
     /* USER CODE END ADC1_2_IRQn 0 */
     /* USER CODE BEGIN ADC1_2_IRQn 1 */
 
