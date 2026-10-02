@@ -126,7 +126,19 @@ extern uint32_t it_count;
 #define ADC_FILTER_ALPHA        1.0f
 #define SPEED_LOOP_TS           0.001f
 #define SPEED_ACCEL_MAX         300.0f
-#define SPEED_SHAPE_K           4
+#define SPEED_SHAPE_K           2
+#define BLDC_PHASE_Rs           0.065f        //单位：欧姆
+#define BLDC_PHASE_L            2.5e-5f       //单位：H
+#define BLDC_MAG_FLUX_LINK      0.0023f      //Wb*turns
+#define FOC_CONTROL_Ts          0.0000517647f      //单位：秒
+#define NFO_K_NL                2.0e8f
+#define NFO_GAIN                4.5e8f
+#define NFO_PLL_KP              800.0f
+#define NFO_PLL_KI              20000.0f
+#define NFO_SPEED_FILTER_ALPHA  0.05f
+#define NFO_PLL_OMEGA_LIMIT     30000.0f
+#define USE_Sguan_NLFO          1
+#define USE_NLFO                1
 #define USE_TIM_UPDATE_IT       0
 #define USE_ADC_INJECT_IT       1
 #define DETECT_RPM              0

@@ -1,3 +1,4 @@
+// clang-format off
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -56,6 +57,7 @@ void DebugMon_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
 void ADC1_2_IRQHandler(void);
+void FDCAN1_IT0_IRQHandler(void);
 void USB_LP_IRQHandler(void);
 void EXTI15_10_IRQHandler(void);
 /* USER CODE BEGIN EFP */
