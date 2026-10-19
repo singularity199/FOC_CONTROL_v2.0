@@ -48,7 +48,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+volatile uint8_t key_flag = 0;
 uint16_t last_angle_machanine = 0;
 uint32_t last_tick = 0;
 extern FDCAN_HandleTypeDef hfdcan1;
@@ -428,18 +428,11 @@ void ADC1_2_IRQHandler(void)
 
         foc_current_loop_control(0.0f, foc.target_park_i.q);
 
+        /* USER CODE END ADC1_2_IRQn 0 */
+        /* USER CODE BEGIN ADC1_2_IRQn 1 */
 
-        SMO_Update(
-            &smo,
-            v_alpha_obs,
-            v_beta_obs,
-            foc.real_clark_i.alpha,
-            foc.real_clark_i.beta);
-        }
-    /* USER CODE END ADC1_2_IRQn 0 */
-    /* USER CODE BEGIN ADC1_2_IRQn 1 */
-
-    /* USER CODE END ADC1_2_IRQn 1 */
+        /* USER CODE END ADC1_2_IRQn 1 */
+    }
 }
 /**
  * @brief This function handles FDCAN1 interrupt 0.
@@ -451,7 +444,6 @@ void FDCAN1_IT0_IRQHandler(void)
     /* USER CODE END FDCAN1_IT0_IRQn 0 */
     HAL_FDCAN_IRQHandler(&hfdcan1);
     /* USER CODE BEGIN FDCAN1_IT0_IRQn 1 */
-
     /* USER CODE END FDCAN1_IT0_IRQn 1 */
 }
 /**
@@ -481,9 +473,7 @@ void EXTI15_10_IRQHandler(void)
         LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_13);
         /* USER CODE BEGIN LL_EXTI_LINE_13 */
 
-        motor_init();
-        LL_TIM_EnableIT_UPDATE(TIM2);
-        LL_TIM_EnableCounter(TIM2);
+        key_flag = 1;
         /* USER CODE END LL_EXTI_LINE_13 */
 
         /* USER CODE BEGIN EXTI15_10_IRQn 1 */

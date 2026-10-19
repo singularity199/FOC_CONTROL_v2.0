@@ -1,4 +1,12 @@
 #include "can.h"
+#include "fdcan.h"
+
+static CanFrame rx_queue[CAN_RX_QUEUE_SIZE];
+static volatile uint8_t rx_queue_head = 0;
+static volatile uint8_t rx_queue_tail = 0;
+
+static volatile uint32_t rx_count = 0;
+static volatile uint32_t rx_drop_count = 0;
 CAN_RxDebugTypeDef can_rx_dbg = {0};
 
 void CAN_UserInit(void)
@@ -69,33 +77,84 @@ uint8_t CAN_SendStdData(uint16_t id, uint8_t data[8])
 
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
-    FDCAN_RxHeaderTypeDef rxHeader;
-    uint8_t rxData[8];
-
-    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0)
+    if (hfdcan->Instance != FDCAN1)
     {
-        if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &rxHeader, rxData) == HAL_OK)
+        return;
+    }
+
+    if (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE == 0)
+    {
+        return;
+    }
+
+    while(HAL_FDCAN_GetRxFifoFillLevel(hfdcan, FDCAN_RX_FIFO0) > 0)
+    {
+        fdcan
+
+        for (uint8_t i = 0; i < 8; i++)
         {
-            can_rx_dbg.rx_count++;
-            can_rx_dbg.last_id = rxHeader.Identifier;
-            can_rx_dbg.last_dlc = rxHeader.DataLength;
-
-            for (uint8_t i = 0; i < 8; i++)
-            {
-                can_rx_dbg.last_data[i] = rxData[i];
-            }
-
-            can_rx_dbg.new_flag = 1;
-
-            CAN_ParseFrame(rxHeader.Identifier, rxData, rxHeader.DataLength);
+            can_rx_dbg.last_data[i] = rxData[i];
         }
-        else
-        {
-            can_rx_dbg.rx_error++;
-        }
+
+        can_rx_dbg.new_flag = 1;
+
+        // CAN_ParseFrame(rxHeader.Identifier, rxData, rxHeader.DataLength);
     }
 }
 
+static uint8_t Can_RxQueuePushFromISR(const CanFrame *frame)
+{
+    uint8_t next_head = (rx_queue_head + 1) % CAN_RX_QUEUE_SIZE;
+
+    if (next_head == rx_queue_tail)
+    {
+        return 0; // 队列已满
+    }
+
+    rx_queue[rx_queue_head] = *frame;
+
+    __DMB();
+    rx_queue_head = next_head;
+    return 1; // 成功入队
+}
+static uint8_t Can_DlcToLength(uint32_t dlc)
+{
+    switch (dlc)
+    {
+    case FDCAN_DLC_BYTES_0:
+        return 0;
+    case FDCAN_DLC_BYTES_1:
+        return 1;
+    case FDCAN_DLC_BYTES_2:
+        return 2;
+    case FDCAN_DLC_BYTES_3:
+        return 3;
+    case FDCAN_DLC_BYTES_4:
+        return 4;
+    case FDCAN_DLC_BYTES_5:
+        return 5;
+    case FDCAN_DLC_BYTES_6:
+        return 6;
+    case FDCAN_DLC_BYTES_7:
+        return 7;
+    case FDCAN_DLC_BYTES_8:
+        return 8;
+    default:
+        return 0; // Invalid DLC
+    }
+}
+uint8_t Can_TryRead(CanFrame *frame)
+{
+    if (rx_queue_head == rx_queue_tail)
+    {
+        return 0; // 队列为空
+    }
+
+    *frame = rx_queue[rx_queue_tail];
+
+    rx_queue_tail = (rx_queue_tail + 1) % CAN_RX_QUEUE_SIZE;
+    return 1; // 成功出队
+}
 void CAN_ParseFrame(uint16_t id, uint8_t data[8], uint32_t dlc)
 {
     if (dlc != FDCAN_DLC_BYTES_8)

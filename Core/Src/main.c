@@ -72,6 +72,8 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint32_t it_count = 0;
+extern NLFO_STRUCT nlfo;
+extern volatile uint8_t key_flag;
 /* USER CODE END 0 */
 
 /**
@@ -162,7 +164,8 @@ int main(void)
     motor_smo_init();
     OLED_Printf(0, 0, "SMO:INIT!");
     OLED_Update();
-    OLED_Printf(0, 2, "READY!");
+    HAL_FDCAN_Start(&hfdcan1);
+    OLED_Printf(0, 2, "CAN:READY!");
     OLED_Update();
     LL_mDelay(2000);
     OLED_Clear();
@@ -178,83 +181,21 @@ int main(void)
     uint32_t last_tick = 0;
 
     foc.last_tick = 0;
+    uint8_t tx_data[8] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+    
+    
     while (1)
     {
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-        /*********************************************************************************************************************************************** */
-        remote_control_task();
-        // if (can_rx_dbg.new_flag)
-        // {
-        //     can_rx_dbg.new_flag = 0;
-
-        //     OLED_Clear();
-        //     OLED_Printf(0, 0, "ID:%03X", can_rx_dbg.last_id);
-        //     OLED_Printf(0, 2, "DLC:%lu", can_rx_dbg.last_dlc);
-
-        //     OLED_Printf(0, 4, "%02X %02X %02X %02X",
-        //                 can_rx_dbg.last_data[0],
-        //                 can_rx_dbg.last_data[1],
-        //                 can_rx_dbg.last_data[2],
-        //                 can_rx_dbg.last_data[3]);
-
-        //     OLED_Printf(0, 6, "%02X %02X %02X %02X",
-        //                 can_rx_dbg.last_data[4],
-        //                 can_rx_dbg.last_data[5],
-        //                 can_rx_dbg.last_data[6],
-        //                 can_rx_dbg.last_data[7]);
-        // }
-        // foc.start_tick = DWT->CYCCNT;
-        // LL_mDelay(100);
-        // foc.end_tick = DWT->CYCCNT;
-        // OLED_Printf(0, 0, "start:%d", foc.start_tick);
-        // OLED_Printf(0, 1, "end:%d", foc.end_tick);
-
-        // uint8_t tail[4] = {0x00, 0x00, 0x80, 0x7f};
-        // UART_Write((uint8_t *)&angle_el, 4);
-        // UART_Write(tail, 4);
-
-        // uint16_t last_angle_machanine = SPI1_read(0xffff) & 0x3fff;
-        /************************************************************************************** */
-
-        // uint16_t new_angle_machanine = foc.angle_machanine << 2;
-        // uint32_t new_tick = DWT->CYCCNT;
-        // usb_array[0] = (1 - ADC_FILTER_ALPHA) * usb_array[0] + ADC_FILTER_ALPHA * ((float)((int16_t)(new_angle_machanine - last_angle_machanine)) / 65535.0f) / ((float)(new_tick - last_tick) / 170000000.0f);
-        // last_angle_machanine = foc.angle_machanine << 2;
-        // last_tick = DWT->CYCCNT;
-        usb_array[0] = foc.angle_machanine;
-        usb_array[1] = foc.angle_el;
-        /*************************************************************************************** */
-
-        // OLED_Printf(0, 0, "%3d", it_count);
-        // OLED_Update();
-
-        // foc.start_tick = DWT->CYCCNT;
-        // OLED_Printf(0, 2, "%8x", foc.adc.v_a);
-        // foc.end_tick = DWT->CYCCNT;
-        // OLED_Printf(0, 4, "%8x", foc.adc.v_c);
-        // OLED_Printf(0, 6, "%8x", foc.adc.v_b);
-        // // OLED_Printf(0, 0, "tick:%x", foc.end_tick - foc.start_tick);
-        // OLED_Update();
-        /*************************************************************************************** */
-        usb_array[2] = foc.real_speed;
-        usb_array[3] = foc.pid_d.error;
-        usb_array[4] = foc.pid_q.error;
-        usb_array[5] = foc.pid_d.error_sum;
-        usb_array[6] = foc.pid_q.error_sum;
-        usb_array[7] = foc.pid_d.output;
-        usb_array[8] = foc.pid_q.output;
-        usb_array[9] = foc.real_park_i.d;
-        usb_array[10] = foc.real_park_i.q;
-        usb_array[11] = foc.real_park_i.q * foc.real_park_i.q + foc.real_park_i.d * foc.real_park_i.d;
-        usb_array[12] = foc.pid_speed.error;
-        usb_array[13] = foc.pid_speed.error_sum;
-
-        while (CDC_Transmit_FS((uint8_t *)&usb_array, sizeof(usb_array)) != USBD_OK)
-            ;
-        // OLED_Update();
-        /******************************************************************************************************************************************************* */
+        if(key_flag == 1)
+        {
+            key_flag = 0;
+            CAN_SendStdData(0x123, tx_data);
+            OLED_Printf(0, 0, "CAN:TX!");
+            OLED_Update();
+        }
     }
     /* USER CODE END 3 */
 }

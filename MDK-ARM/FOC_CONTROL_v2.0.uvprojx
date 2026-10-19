@@ -14,9 +14,9 @@
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
-          <Device>ARMCM4</Device>
-          <Vendor>ARM</Vendor>
-          <PackID>ARM.Cortex_DFP.1.1.0</PackID>
+          <Device>STM32G431CBTx</Device>
+          <Vendor>STMicroelectronics</Vendor>
+          <PackID>Keil.STM32G4xx_DFP.2.2.0</PackID>
           <PackURL>https://www.keil.com/pack/</PackURL>
           <Cpu>IRAM(0x20000000,0x00008000) IROM(0x08000000,0x00020000) CPUTYPE("Cortex-M4") FPU2 DSP CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -110,11 +110,11 @@
         </CommonProperty>
         <DllOption>
           <SimDllName>SARMCM3.DLL</SimDllName>
-          <SimDllArguments>-REMAP -MPU</SimDllArguments>
+          <SimDllArguments> -REMAP -MPU</SimDllArguments>
           <SimDlgDll>DCM.DLL</SimDlgDll>
           <SimDlgDllArguments>-pCM4</SimDlgDllArguments>
           <TargetDllName>SARMCM3.DLL</TargetDllName>
-          <TargetDllArguments>-MPU</TargetDllArguments>
+          <TargetDllArguments> -MPU</TargetDllArguments>
           <TargetDlgDll>TCM.DLL</TargetDlgDll>
           <TargetDlgDllArguments>-pCM4</TargetDlgDllArguments>
         </DllOption>
@@ -207,7 +207,7 @@
             <Ro2Chk>0</Ro2Chk>
             <Ro3Chk>0</Ro3Chk>
             <Ir1Chk>1</Ir1Chk>
-            <Ir2Chk>1</Ir2Chk>
+            <Ir2Chk>0</Ir2Chk>
             <Ra1Chk>0</Ra1Chk>
             <Ra2Chk>0</Ra2Chk>
             <Ra3Chk>0</Ra3Chk>
@@ -698,6 +698,26 @@
               <FileName>can.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\can.c</FilePath>
+            </File>
+            <File>
+              <FileName>Sguan_NLFO.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\Sguan_NLFO.c</FilePath>
+            </File>
+            <File>
+              <FileName>smo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\smo.c</FilePath>
+            </File>
+            <File>
+              <FileName>foc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\foc.c</FilePath>
+            </File>
+            <File>
+              <FileName>nonlinear_flux_observer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\nonlinear_flux_observer.c</FilePath>
             </File>
           </Files>
         </Group>

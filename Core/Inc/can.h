@@ -4,18 +4,6 @@
 #include "fdcan.h"
 // clang-format off
 
-typedef struct
-{
-    volatile uint32_t rx_count;      // 成功接收计数
-    volatile uint32_t rx_error;      // 读取失败计数
-    volatile uint32_t last_dlc;      // 最近一帧 DLC
-    volatile uint16_t last_id;       // 最近一帧 ID
-    volatile uint8_t  last_data[8];  // 最近一帧数据
-    volatile uint8_t  new_flag;      // 收到新数据标志
-} CAN_RxDebugTypeDef;
-
-extern CAN_RxDebugTypeDef can_rx_dbg;
-
 #define CAN_FUNC_CURRENT    0x100      //0x100 + id ：电流 / 力矩模式
 #define CAN_FUNC_VELOCITY   0x200      //0x200 + id ：速度模式
 #define CAN_FUNC_POSITION   0x300      //0x300 + id ：位置模式
@@ -27,10 +15,35 @@ extern CAN_RxDebugTypeDef can_rx_dbg;
 #define CAN_FUNC_MASK       0x7F0
 #define CAN_ID_MASK         0x00F
 
+#define CAN_RX_QUEUE_SIZE  16
+
+typedef struct
+{
+    volatile uint32_t rx_count;      // 成功接收计数
+    volatile uint32_t rx_error;      // 读取失败计数
+    volatile uint32_t last_dlc;      // 最近一帧 DLC
+    volatile uint16_t last_id;       // 最近一帧 ID
+    volatile uint8_t  last_data[8];  // 最近一帧数据
+    volatile uint8_t  new_flag;      // 收到新数据标志
+} CAN_RxDebugTypeDef;
+
+typedef struct
+{
+    volatile uint16_t id;       // 最近一帧 ID
+    uint8_t  dlc;               // 最近一帧 DLC
+    volatile uint8_t  last_data[8];  // 最近一帧数据
+    volatile uint8_t  new_flag;      // 发送新数据标志
+} CanFrame;
+
+extern CAN_RxDebugTypeDef can_rx_dbg;
+extern CanFrame rx_queue[CAN_RX_QUEUE_SIZE];
+
+
 void CAN_UserInit(void);
 uint8_t CAN_SendStdData(uint16_t id, uint8_t data[8]);
 void CAN_ParseFrame(uint16_t id, uint8_t data[8], uint32_t dlc);
 
 void MotorCAN_ParseCurrentCmd(uint8_t motor_id, uint8_t data[8]);
+uint8_t Can_TryRead(CanFrame *frame);
 
 #endif /* __CAN_H__ */
